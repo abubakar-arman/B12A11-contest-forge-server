@@ -1,0 +1,61 @@
+# ============================
+# Node & Dependency Folders
+# ============================
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# ============================
+# Build & Output
+# ============================
+client/dist/
+server/dist/
+build/
+*.log
+
+# ============================
+# Environment Files
+# ============================
+.env
+.env.local
+client/.env
+server/.env
+
+# ============================
+# Firebase
+# ============================
+serviceAccountKey.json
+
+# ============================
+# OS / Editor Junk
+# ============================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ============================
+# Cache / Temp Files
+# ============================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tmp
+*.bak
+
+# ============================
+# Coverage / Testing
+# ============================
+coverage/
+jest-cache/
+jest-coverage/
+
+# ============================
+# Miscellaneous
+# ============================
+.vercel/
+.netlify/
+.vercel
