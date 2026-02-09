@@ -151,6 +151,27 @@ app.post('/api/contests', async (req, res) => {
     return res.send({ success: 'true', msg: 'contest_created', result })
 })
 
+app.put('/api/contests/:id', async (req, res) => {
+    const { id } = req.params
+    const data = req.body
+
+    if (!ObjectId.isValid(id)) {
+        return res.send({ err: 'invalid id' })
+    }
+    // console.log(req.params);
+    // console.log(req.body);
+
+    const filter = { _id: new ObjectId(id) }
+    const update = { $set: data }
+
+    const result = await contestsCol.updateOne(filter, update)
+
+    return res.send({
+        success: true,
+        result
+    })
+})
+
 app.delete('/api/contests/:id', async (req, res) => {
     const { id } = req.params
 
