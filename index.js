@@ -20,7 +20,7 @@ const contestsCol = db.collection('contests')
 
 const isUserExist = async (email) => {
     const result = await usersCol.find({email}).toArray()
-    console.log(result);
+    // console.log(result);
     return result.length ? true : false
 }
 
@@ -50,9 +50,10 @@ app.post('/api/users', async (req, res) => {
         photoUrl,
 
         role: "user",
+        rank_title: "Newbie",
         joined_date: new Date(),
-        address: "",
-        bio: "",
+        address: "No address yet",
+        bio: "No bio yet",
         total_wins: 0,
         total_participated: 0,
     })
@@ -65,6 +66,15 @@ app.get('/api/user/exists/:email', async (req, res) => {
     const userExist = await isUserExist(email)
     // console.log(userExist);
     return res.send({success: 'true', msg: userExist})
+})
+
+app.get('/api/user/:email', async (req, res) => {
+    const {email} = req.params
+
+    const query = {email}
+    const result = await usersCol.findOne(query)
+    // console.log(result);
+    return res.send({success: 'true', result})
 })
 
 app.listen(port, () => {
