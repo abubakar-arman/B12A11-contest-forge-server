@@ -120,6 +120,30 @@ app.get('/api/user/:id', async (req, res) => {
     return res.send({success: 'true', result})
 })
 
+
+// CONTESTS ENDPOINDS //
+app.post('/api/contests', async (req, res) => {
+    // const { 
+    //   name,
+    //   contest_type,
+    //   image,
+    //   description,
+    //   task_instruction,
+    //   price,
+    //   prize_money,
+    //   deadline
+    //  } = req.body
+    // console.log(data);
+
+    const result = await contestsCol.insertOne({
+        ...req.body,
+        participants_count: 0,
+        winner: {}
+    })
+    console.log('contest created:', result);
+    return res.send({ success: 'true', msg: 'contest_created', result })
+})
+
 app.listen(port, () => {
     console.log('Server listening on port', port);
 
