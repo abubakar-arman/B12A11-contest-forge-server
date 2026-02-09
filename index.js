@@ -151,6 +151,20 @@ app.post('/api/contests', async (req, res) => {
     return res.send({ success: 'true', msg: 'contest_created', result })
 })
 
+app.get('/api/contest/:id', async (req, res) => {
+    const {id} = req.params
+
+    if (!ObjectId.isValid(id)) {
+        return res.send({ success: false, err: 'invalid id' })
+    }
+
+    const query = { _id: new ObjectId(id) }
+    const result = await contestsCol.findOne(query)
+    // console.log(result);
+    return res.send({success: 'true', result})
+})
+
+
 app.listen(port, () => {
     console.log('Server listening on port', port);
 
