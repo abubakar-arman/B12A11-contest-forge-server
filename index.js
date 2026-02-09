@@ -63,6 +63,43 @@ app.post('/api/users', async (req, res) => {
     return res.send({ success: 'true', msg: 'user_created', result })
 })
 
+app.put('/api/users/:id', async (req, res) => {
+    const { id } = req.params
+    const data = req.body
+
+    if (!ObjectId.isValid(id)) {
+        return res.send({ err: 'invalid id' })
+    }
+    // console.log(req.params);
+    // console.log(req.body);
+
+    const filter = { _id: new ObjectId(id) }
+    const update = { $set: data }
+
+    const result = await usersCol.updateOne(filter, update)
+
+    return res.send({
+        success: true,
+        result
+    })
+})
+
+app.delete('/api/users/:id', async (req, res) => {
+    const { id } = req.params
+
+    if (!ObjectId.isValid(id)) {
+        return res.send({ err: 'invald id' })
+    }
+
+    const filter = { _id: new ObjectId(id) }
+    const result = await usersCol.deleteOne(filter)
+
+    res.send({
+        success: true,
+        result
+    })
+})
+
 app.get('/api/user/exists/:email', async (req, res) => {
     const {email} = req.params
     const userExist = await isUserExist(email)
