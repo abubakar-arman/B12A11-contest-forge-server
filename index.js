@@ -3,7 +3,8 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 dotenv.config();
-const mongoClient = require('./config/db')
+const mongoClient = require('./config/db');
+const { ObjectId } = require('mongodb');
 
 const app = express()
 
@@ -30,7 +31,8 @@ app.get('/', async (req, res) => {
 })
 
 app.get('/api/users', async (req, res) => {
-    const result = await usersCol.find({})
+    const result = await usersCol.find({}).toArray()
+    return res.send({success: true, result})
 })
 
 app.post('/api/users', async (req, res) => {
@@ -68,10 +70,14 @@ app.get('/api/user/exists/:email', async (req, res) => {
     return res.send({success: 'true', msg: userExist})
 })
 
-app.get('/api/user/:email', async (req, res) => {
-    const {email} = req.params
+app.get('/api/user/:id', async (req, res) => {
+    const {id} = req.params
 
-    const query = {email}
+    if (!ObjectId.isValid(id)) {
+        return res.send({ success: false, err: 'invalid id' })
+    }
+
+    const query = { _id: new ObjectId(id) }
     const result = await usersCol.findOne(query)
     // console.log(result);
     return res.send({success: 'true', result})
