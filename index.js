@@ -151,6 +151,22 @@ app.post('/api/contests', async (req, res) => {
     return res.send({ success: 'true', msg: 'contest_created', result })
 })
 
+app.delete('/api/contests/:id', async (req, res) => {
+    const { id } = req.params
+
+    if (!ObjectId.isValid(id)) {
+        return res.send({ err: 'invald id' })
+    }
+
+    const filter = { _id: new ObjectId(id) }
+    const result = await contestsCol.deleteOne(filter)
+
+    res.send({
+        success: true,
+        result
+    })
+})
+
 app.get('/api/contest/:id', async (req, res) => {
     const {id} = req.params
 
