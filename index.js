@@ -30,6 +30,7 @@ app.get('/', async (req, res) => {
     return res.send({'msg': 'Server is Running'})
 })
 
+// USERS ENDPOINTS //
 app.get('/api/users', async (req, res) => {
     const result = await usersCol.find({}).toArray()
     return res.send({success: true, result})
@@ -122,6 +123,12 @@ app.get('/api/user/:id', async (req, res) => {
 
 
 // CONTESTS ENDPOINDS //
+
+app.get('/api/contests', async (req, res) => {
+    const result = await contestsCol.find({}).toArray()
+    return res.send({success: true, result})
+})
+
 app.post('/api/contests', async (req, res) => {
     // const { 
     //   name,
