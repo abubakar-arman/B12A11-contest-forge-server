@@ -59,6 +59,7 @@ app.post('/api/users', async (req, res) => {
         bio: "No bio yet",
         total_wins: 0,
         total_participated: 0,
+        participated_contests: [],
     })
     // console.log('user created:', result);
     return res.send({ success: 'true', msg: 'user_created', result })
@@ -116,6 +117,15 @@ app.get('/api/user/:id', async (req, res) => {
     }
 
     const query = { _id: new ObjectId(id) }
+    const result = await usersCol.findOne(query)
+    // console.log(result);
+    return res.send({success: 'true', result})
+})
+
+app.get('/api/user/find/:email', async (req, res) => {
+    const {email} = req.params
+
+    const query = { email }
     const result = await usersCol.findOne(query)
     // console.log(result);
     return res.send({success: 'true', result})
