@@ -209,8 +209,15 @@ app.get('/api/contest/:id', async (req, res) => {
     const query = { _id: new ObjectId(id) }
     const result = await contestsCol.findOne(query)
     // console.log(result);
-    return res.send({success: 'true', result})
+    return res.send({success: true, result})
 })
+
+app.get('/api/popular-contests', async (req, res) => {
+    const result = await contestsCol.find().sort({participants_count: 'desc'}).limit(5).toArray()
+    // console.log(result);
+    return res.send({success: true, result})
+})
+
 
 
 app.listen(port, () => {
