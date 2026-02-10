@@ -60,6 +60,7 @@ app.post('/api/users', async (req, res) => {
         total_wins: 0,
         total_participated: 0,
         participated_contests: [],
+        winning_contests: []
     })
     // console.log('user created:', result);
     return res.send({ success: 'true', msg: 'user_created', result })
