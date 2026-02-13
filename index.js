@@ -156,7 +156,8 @@ app.post('/api/contests', async (req, res) => {
     const result = await contestsCol.insertOne({
         ...req.body,
         participants_count: 0,
-        winner: {}
+        winner: {},
+        participated_users: []
     })
     console.log('contest created:', result);
     return res.send({ success: 'true', msg: 'contest_created', result })
@@ -210,6 +211,28 @@ app.get('/api/contest/:id', async (req, res) => {
     const result = await contestsCol.findOne(query)
     // console.log(result);
     return res.send({success: true, result})
+})
+
+app.put('/api/contest/register/:id', async (req, res) => {
+    const {id} = req.params
+    const {email} = req.body  
+    
+    if (!ObjectId.isValid(id)) {
+        return res.send({ success: false, err: 'invalid id'})
+    }
+    
+    const query = {_id: new ObjectId(id)}
+    let result = await contestsCol.findOne(query)
+    const {_id, ...rest} = result
+    rest.participated_users.push(email)
+
+    const update = {$set: rest}
+    result = await contestsCol.updateOne(query, update)
+    
+    return res.send({
+        success: true,
+        result
+    })
 })
 
 app.get('/api/popular-contests', async (req, res) => {
