@@ -235,6 +235,30 @@ app.put('/api/contest/register/:id', async (req, res) => {
     })
 })
 
+app.put('/api/contest/deregister/:id', async (req, res) => {
+    const {id} = req.params
+    const {email} = req.body  
+    
+    if (!ObjectId.isValid(id)) {
+        return res.send({ success: false, err: 'invalid id'})
+    }
+    
+    const query = {_id: new ObjectId(id)}
+    let result = await contestsCol.findOne(query)
+    const {_id, ...rest} = result
+    const newList = rest.participated_users.filter(i => i !== email)
+    rest.participated_users = newList
+
+    const update = {$set: rest}
+    result = await contestsCol.updateOne(query, update)
+    console.log('jj', rest, req.body);
+    
+    return res.send({
+        success: true,
+        result
+    })
+})
+
 app.get('/api/popular-contests', async (req, res) => {
     const result = await contestsCol.find().sort({participants_count: 'desc'}).limit(5).toArray()
     // console.log(result);
