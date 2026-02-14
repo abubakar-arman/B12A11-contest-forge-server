@@ -21,30 +21,30 @@ const contestsCol = db.collection('contests')
 const submissionsCol = db.collection('submissions')
 
 const isUserExist = async (email) => {
-    const result = await usersCol.find({email}).toArray()
+    const result = await usersCol.find({ email }).toArray()
     // console.log(result);
     return result.length ? true : false
 }
 
 app.get('/', async (req, res) => {
     // console.log(await isUserExist('bdcybergang21@gmail.com'))
-    return res.send({'msg': 'Server is Running'})
+    return res.send({ 'msg': 'Server is Running' })
 })
 
 // USERS ENDPOINTS //
 app.get('/api/users', async (req, res) => {
     const result = await usersCol.find({}).toArray()
-    return res.send({success: true, result})
+    return res.send({ success: true, result })
 })
 
 app.post('/api/users', async (req, res) => {
-    const {name, email, password, photoUrl} = req.body
+    const { name, email, password, photoUrl } = req.body
     // console.log(data);
 
     const userExists = await isUserExist(email)
-    if(userExists){
+    if (userExists) {
         // console.log('user exists', email);
-        return res.send({success: 'false', msg: 'user_exists'})
+        return res.send({ success: 'false', msg: 'user_exists' })
     }
 
     const result = await usersCol.insertOne({
@@ -60,8 +60,6 @@ app.post('/api/users', async (req, res) => {
         bio: "No bio yet",
         total_wins: 0,
         total_participated: 0,
-        participated_contests: [],
-        winning_contests: []
     })
     // console.log('user created:', result);
     return res.send({ success: 'true', msg: 'user_created', result })
@@ -69,7 +67,7 @@ app.post('/api/users', async (req, res) => {
 
 app.put('/api/users/:id', async (req, res) => {
     const { id } = req.params
-    const {_id, ...data} = req.body
+    const { _id, ...data } = req.body
 
     if (!ObjectId.isValid(id)) {
         return res.send({ err: 'invalid id' })
@@ -105,14 +103,14 @@ app.delete('/api/users/:id', async (req, res) => {
 })
 
 app.get('/api/user/exists/:email', async (req, res) => {
-    const {email} = req.params
+    const { email } = req.params
     const userExist = await isUserExist(email)
     // console.log(userExist);
-    return res.send({success: 'true', msg: userExist})
+    return res.send({ success: 'true', msg: userExist })
 })
 
 app.get('/api/user/:id', async (req, res) => {
-    const {id} = req.params
+    const { id } = req.params
 
     if (!ObjectId.isValid(id)) {
         return res.send({ success: false, err: 'invalid id' })
@@ -121,16 +119,16 @@ app.get('/api/user/:id', async (req, res) => {
     const query = { _id: new ObjectId(id) }
     const result = await usersCol.findOne(query)
     // console.log(result);
-    return res.send({success: 'true', result})
+    return res.send({ success: 'true', result })
 })
 
 app.get('/api/user/find/:email', async (req, res) => {
-    const {email} = req.params
+    const { email } = req.params
 
     const query = { email }
     const result = await usersCol.findOne(query)
     // console.log(result);
-    return res.send({success: 'true', result})
+    return res.send({ success: 'true', result })
 })
 
 
@@ -138,7 +136,7 @@ app.get('/api/user/find/:email', async (req, res) => {
 
 app.get('/api/contests', async (req, res) => {
     const result = await contestsCol.find({}).toArray()
-    return res.send({success: true, result})
+    return res.send({ success: true, result })
 })
 
 app.post('/api/contests', async (req, res) => {
@@ -202,7 +200,7 @@ app.delete('/api/contests/:id', async (req, res) => {
 })
 
 app.get('/api/contest/:id', async (req, res) => {
-    const {id} = req.params
+    const { id } = req.params
 
     if (!ObjectId.isValid(id)) {
         return res.send({ success: false, err: 'invalid id' })
@@ -211,26 +209,36 @@ app.get('/api/contest/:id', async (req, res) => {
     const query = { _id: new ObjectId(id) }
     const result = await contestsCol.findOne(query)
     // console.log(result);
-    return res.send({success: true, result})
+    return res.send({ success: true, result })
 })
 
 app.put('/api/contest/register/:id', async (req, res) => {
-    const {id} = req.params
-    const {email} = req.body  
-    
+    const { id } = req.params
+    const { email } = req.body
+
     if (!ObjectId.isValid(id)) {
-        return res.send({ success: false, err: 'invalid id'})
+        return res.send({ success: false, err: 'invalid id' })
     }
-    
-    const query = {_id: new ObjectId(id)}
+
+    let query = { _id: new ObjectId(id) }
     let result = await contestsCol.findOne(query)
-    const {_id, ...rest} = result
+    const { _id, ...rest } = result
     rest.participated_users.push(email)
     rest.participants_count += 1;
 
-    const update = {$set: rest}
+    let update = { $set: rest }
     result = await contestsCol.updateOne(query, update)
-    
+
+    // increment in user table
+    query = { email }
+    let userResult = await usersCol.findOne(query)
+    let { _id: uid, ...userRest } = userResult
+    userRest.total_participated += 1
+    const userQuery = { _id: new ObjectId(uid) }
+    update = { $set: userRest }
+    userResult = await usersCol.updateOne(userQuery, update)
+
+
     return res.send({
         success: true,
         result
@@ -238,24 +246,33 @@ app.put('/api/contest/register/:id', async (req, res) => {
 })
 
 app.put('/api/contest/deregister/:id', async (req, res) => {
-    const {id} = req.params
-    const {email} = req.body  
-    
+    const { id } = req.params
+    const { email } = req.body
+
     if (!ObjectId.isValid(id)) {
-        return res.send({ success: false, err: 'invalid id'})
+        return res.send({ success: false, err: 'invalid id' })
     }
-    
-    const query = {_id: new ObjectId(id)}
+
+    let query = { _id: new ObjectId(id) }
     let result = await contestsCol.findOne(query)
-    const {_id, ...rest} = result
+    const { _id, ...rest } = result
     const newList = rest.participated_users.filter(i => i !== email)
     rest.participated_users = newList
     rest.participants_count -= 1
 
-    const update = {$set: rest}
+    let update = { $set: rest }
     result = await contestsCol.updateOne(query, update)
     // console.log('jj', rest, req.body);
-    
+
+    // decrement in user table
+    query = { email }
+    let userResult = await usersCol.findOne(query)
+    let { _id: uid, ...userRest } = userResult
+    userRest.total_participated = userRest.total_participated > 0 ? userRest.total_participated - 1 : 0
+    const userQuery = { _id: new ObjectId(uid) }
+    update = { $set: userRest }
+    userResult = await usersCol.updateOne(userQuery, update)
+
     return res.send({
         success: true,
         result
@@ -263,44 +280,52 @@ app.put('/api/contest/deregister/:id', async (req, res) => {
 })
 
 app.put('/api/contest/declare-winner/:id', async (req, res) => {
-    const {id} = req.params
-    const {_id: submissionId, contestId, email, solution, submission_date} = req.body  
+    const { id } = req.params
+    const { _id: submissionId, contestId, email, solution, submission_date } = req.body
     // console.log('lk', req.body);
     // return
-    
+
     if (!ObjectId.isValid(id)) {
-        return res.send({ success: false, err: 'invalid id'})
+        return res.send({ success: false, err: 'invalid id' })
     }
-    
-    let query = {_id: new ObjectId(submissionId)}
+
+    let query = { _id: new ObjectId(submissionId) }
     let result = await submissionsCol.findOne(query)
-    let {_id, ...rest} = result
+    let { _id, ...rest } = result
     rest.is_winner = true
     rest.status = 'accepted'
     rest
     // console.log('rest',rest)
-    
 
-    let update = {$set: rest}
+
+    let update = { $set: rest }
     result = await submissionsCol.updateOne(query, update)
 
     // fetch winner name and image_url from users table
-    query = {email}
-    result = await usersCol.findOne(query)
-    let {name, photoUrl} = result
-    
+    query = { email }
+    let userResult = await usersCol.findOne(query)
+
+    let { name, photoUrl } = userResult
+
+    // increment in user table
+    let { _id: uid, ...userRest } = userResult
+    userRest.total_wins += 1
+    const userQuery = { _id: new ObjectId(uid) }
+    update = { $set: userRest }
+    userResult = await usersCol.updateOne(userQuery, update)
+
     // set winner info in contest
-    query = {_id: new ObjectId(contestId)}
+    query = { _id: new ObjectId(contestId) }
     result = await contestsCol.findOne(query)
-    const {_id: contest_id, ...contestRest} = result
+    const { _id: contest_id, ...contestRest } = result
     contestRest.winner = {
         name,
         photoUrl,
         email
     }
-    update = {$set: contestRest}
+    update = { $set: contestRest }
     result = await contestsCol.updateOne(query, update)
-    
+
     return res.send({
         success: true,
         result
@@ -309,35 +334,44 @@ app.put('/api/contest/declare-winner/:id', async (req, res) => {
 
 
 app.put('/api/contest/undo-winner/:id', async (req, res) => {
-    const {id} = req.params
-    const {_id: submissionId, contestId, email, solution, submission_date} = req.body  
+    const { id } = req.params
+    const { _id: submissionId, contestId, email, solution, submission_date } = req.body
     // console.log('lk', req.body);
     // return
-    
+
     if (!ObjectId.isValid(id)) {
-        return res.send({ success: false, err: 'invalid id'})
+        return res.send({ success: false, err: 'invalid id' })
     }
-    
+
     // set submission to false
-    let query = {_id: new ObjectId(submissionId)}
+    let query = { _id: new ObjectId(submissionId) }
     let result = await submissionsCol.findOne(query)
-    let {_id, ...rest} = result
+    let { _id, ...rest } = result
     rest.is_winner = false
     rest.status = 'pending'
     // console.log('rest',rest)
-    
 
-    let update = {$set: rest}
+
+    let update = { $set: rest }
     result = await submissionsCol.updateOne(query, update)
-    
+
     // remove winner info in contest
-    query = {_id: new ObjectId(contestId)}
+    query = { _id: new ObjectId(contestId) }
     result = await contestsCol.findOne(query)
-    const {_id: contest_id, ...contestRest} = result
+    const { _id: contest_id, ...contestRest } = result
     contestRest.winner = {}
-    update = {$set: contestRest}
+    update = { $set: contestRest }
     result = await contestsCol.updateOne(query, update)
-    
+
+    // decrement in user table
+    query = { email }
+    let userResult = await usersCol.findOne(query)
+    let { _id: uid, ...userRest } = userResult
+    userRest.total_wins = userRest.total_wins > 0 ? userRest.total_wins - 1 : 0
+    const userQuery = { _id: new ObjectId(uid) }
+    update = { $set: userRest }
+    userResult = await usersCol.updateOne(userQuery, update)
+
     return res.send({
         success: true,
         result
@@ -345,19 +379,19 @@ app.put('/api/contest/undo-winner/:id', async (req, res) => {
 })
 
 app.get('/api/popular-contests', async (req, res) => {
-    const result = await contestsCol.find().sort({participants_count: 'desc'}).limit(5).toArray()
+    const result = await contestsCol.find().sort({ participants_count: 'desc' }).limit(5).toArray()
     // console.log(result);
-    return res.send({success: true, result})
+    return res.send({ success: true, result })
 })
 
 // SUBMISSIONS ENDPOINTS //
 app.get('/api/submissions', async (req, res) => {
     const result = await submissionsCol.find({}).toArray()
-    return res.send({success: true, result})
+    return res.send({ success: true, result })
 })
 
 app.post('/api/submissions', async (req, res) => {
-    const {contestId, email, solution} = req.body
+    const { contestId, email, solution } = req.body
     // console.log('lkl', req.body);
 
     const result = await submissionsCol.insertOne({
