@@ -18,6 +18,7 @@ const port = process.env.PORT || 3000
 const db = mongoClient.db('contestforge-db')
 const usersCol = db.collection('users')
 const contestsCol = db.collection('contests')
+const submissionsCol = db.collection('submissions')
 
 const isUserExist = async (email) => {
     const result = await usersCol.find({email}).toArray()
@@ -263,6 +264,21 @@ app.get('/api/popular-contests', async (req, res) => {
     const result = await contestsCol.find().sort({participants_count: 'desc'}).limit(5).toArray()
     // console.log(result);
     return res.send({success: true, result})
+})
+
+app.post('/api/submissions', async (req, res) => {
+    const {contestId, email, solution} = req.body
+    console.log('lkl', req.body);
+
+    const result = await submissionsCol.insertOne({
+        contestId,
+        email,
+        solution,
+        submission_date: new Date(),
+        is_winner: false
+    })
+    // console.log('user created:', result);
+    return res.send({ success: 'true', msg: 'submission_created', result })
 })
 
 
