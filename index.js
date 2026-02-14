@@ -69,7 +69,7 @@ app.post('/api/users', async (req, res) => {
 
 app.put('/api/users/:id', async (req, res) => {
     const { id } = req.params
-    const data = req.body
+    const {_id, ...data} = req.body
 
     if (!ObjectId.isValid(id)) {
         return res.send({ err: 'invalid id' })
@@ -226,6 +226,7 @@ app.put('/api/contest/register/:id', async (req, res) => {
     let result = await contestsCol.findOne(query)
     const {_id, ...rest} = result
     rest.participated_users.push(email)
+    rest.participants_count += 1;
 
     const update = {$set: rest}
     result = await contestsCol.updateOne(query, update)
@@ -249,6 +250,7 @@ app.put('/api/contest/deregister/:id', async (req, res) => {
     const {_id, ...rest} = result
     const newList = rest.participated_users.filter(i => i !== email)
     rest.participated_users = newList
+    rest.participants_count -= 1
 
     const update = {$set: rest}
     result = await contestsCol.updateOne(query, update)
@@ -293,7 +295,8 @@ app.put('/api/contest/declare-winner/:id', async (req, res) => {
     const {_id: contest_id, ...contestRest} = result
     contestRest.winner = {
         name,
-        photoUrl
+        photoUrl,
+        email
     }
     update = {$set: contestRest}
     result = await contestsCol.updateOne(query, update)
