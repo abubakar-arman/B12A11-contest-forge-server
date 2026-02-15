@@ -5,6 +5,7 @@ const dotenv = require('dotenv')
 dotenv.config();
 const mongoClient = require('./config/db');
 const { ObjectId } = require('mongodb');
+const { verifyFBToken } = require('./middlewares/auth');
 
 const app = express()
 
@@ -32,7 +33,7 @@ app.get('/', async (req, res) => {
 })
 
 // USERS ENDPOINTS //
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', verifyFBToken, async (req, res) => {
     const result = await usersCol.find({}).toArray()
     return res.send({ success: true, result })
 })
