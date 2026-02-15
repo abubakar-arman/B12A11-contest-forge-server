@@ -20,6 +20,7 @@ const db = mongoClient.db('contestforge-db')
 const usersCol = db.collection('users')
 const contestsCol = db.collection('contests')
 const submissionsCol = db.collection('submissions')
+const homeCol = db.collection('home')
 
 // MIDDLEWARES //
 const verifyAdmin = async (req, res, next) => {
@@ -430,6 +431,13 @@ app.get('/api/popular-contests', async (req, res) => {
     const result = await contestsCol.find().sort({ participants_count: 'desc' }).limit(5).toArray()
     // console.log(result);
     return res.send({ success: true, result })
+})
+
+
+app.get('/api/home/banner', async (req, res) => {
+    const result = await homeCol.find({}).toArray()
+
+    return res.send({ success: true, imgs: result[0].bannerImages })
 })
 
 // SUBMISSIONS ENDPOINTS //
