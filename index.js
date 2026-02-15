@@ -21,6 +21,41 @@ const usersCol = db.collection('users')
 const contestsCol = db.collection('contests')
 const submissionsCol = db.collection('submissions')
 
+// MIDDLEWARES //
+const verifyAdmin = async (req, res, next) => {
+    const email = req.decoded_email;
+    const query = { email };
+    const user = await usersCol.findOne(query);
+
+    if (!user || user.role !== 'admin') {
+        return res.status(403).send({ message: 'forbidden access to admin route' });
+    }
+
+    next();
+}
+const verifyCreator = async (req, res, next) => {
+    const email = req.decoded_email;
+    const query = { email };
+    const user = await usersCol.findOne(query);
+
+    if (!user || user.role !== 'creator') {
+        return res.status(403).send({ message: 'forbidden access to creator route' });
+    }
+
+    next();
+}
+const verifyAdminOrCreator = async (req, res, next) => {
+    const email = req.decoded_email;
+    const query = { email };
+    const user = await usersCol.findOne(query);
+
+    if (!user || user.role !== 'admin' || user.role !== 'creator') {
+        return res.status(403).send({ message: 'forbidden access' });
+    }
+
+    next();
+}
+
 const isUserExist = async (email) => {
     const result = await usersCol.find({ email }).toArray()
     // console.log(result);
@@ -66,7 +101,7 @@ app.post('/api/users', async (req, res) => {
     return res.send({ success: 'true', msg: 'user_created', result })
 })
 
-app.put('/api/users/:id', async (req, res) => {
+app.put('/api/users/:id', verifyFBToken, async (req, res) => {
     const { id } = req.params
     const { _id, ...data } = req.body
 
@@ -87,7 +122,7 @@ app.put('/api/users/:id', async (req, res) => {
     })
 })
 
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users/:id', verifyFBToken, verifyAdmin, async (req, res) => {
     const { id } = req.params
 
     if (!ObjectId.isValid(id)) {
@@ -101,6 +136,16 @@ app.delete('/api/users/:id', async (req, res) => {
         success: true,
         result
     })
+})
+
+app.get('/api/users/:email/role', async (req, res) => {
+    const email = req.params.email;
+
+    const query = { email }
+    // console.log('kk');
+
+    const user = await usersCol.findOne(query)
+    return res.send({ success: true, result: user?.role || 'user' })
 })
 
 app.get('/api/user/exists/:email', async (req, res) => {
@@ -140,7 +185,7 @@ app.get('/api/contests', async (req, res) => {
     return res.send({ success: true, result })
 })
 
-app.post('/api/contests', async (req, res) => {
+app.post('/api/contests', verifyFBToken, verifyCreator, async (req, res) => {
     // const { 
     //   name,
     //   contest_type,
@@ -151,19 +196,21 @@ app.post('/api/contests', async (req, res) => {
     //   prize_money,
     //   deadline
     //  } = req.body
-    // console.log(data);
+    console.log('rej', req.decoded_email);
 
     const result = await contestsCol.insertOne({
         ...req.body,
         participants_count: 0,
         winner: {},
-        participated_users: []
+        participated_users: [],
+        status: 'pending', // pending/approved/rejected,
+        created_by: req.decoded_email,
     })
     console.log('contest created:', result);
     return res.send({ success: 'true', msg: 'contest_created', result })
 })
 
-app.put('/api/contests/:id', async (req, res) => {
+app.put('/api/contests/:id', verifyFBToken, async (req, res) => {
     const { id } = req.params
     const data = req.body
 
@@ -184,7 +231,7 @@ app.put('/api/contests/:id', async (req, res) => {
     })
 })
 
-app.delete('/api/contests/:id', async (req, res) => {
+app.delete('/api/contests/:id', verifyFBToken, async (req, res) => {
     const { id } = req.params
 
     if (!ObjectId.isValid(id)) {
@@ -213,7 +260,7 @@ app.get('/api/contest/:id', async (req, res) => {
     return res.send({ success: true, result })
 })
 
-app.put('/api/contest/register/:id', async (req, res) => {
+app.put('/api/contest/register/:id', verifyFBToken, async (req, res) => {
     const { id } = req.params
     const { email } = req.body
 
@@ -246,7 +293,7 @@ app.put('/api/contest/register/:id', async (req, res) => {
     })
 })
 
-app.put('/api/contest/deregister/:id', async (req, res) => {
+app.put('/api/contest/deregister/:id', verifyFBToken, verifyCreator, async (req, res) => {
     const { id } = req.params
     const { email } = req.body
 
@@ -280,7 +327,7 @@ app.put('/api/contest/deregister/:id', async (req, res) => {
     })
 })
 
-app.put('/api/contest/declare-winner/:id', async (req, res) => {
+app.put('/api/contest/declare-winner/:id', verifyFBToken, verifyCreator, async (req, res) => {
     const { id } = req.params
     const { _id: submissionId, contestId, email, solution, submission_date } = req.body
     // console.log('lk', req.body);
@@ -334,7 +381,7 @@ app.put('/api/contest/declare-winner/:id', async (req, res) => {
 })
 
 
-app.put('/api/contest/undo-winner/:id', async (req, res) => {
+app.put('/api/contest/undo-winner/:id', verifyFBToken, verifyCreator, async (req, res) => {
     const { id } = req.params
     const { _id: submissionId, contestId, email, solution, submission_date } = req.body
     // console.log('lk', req.body);
@@ -386,12 +433,12 @@ app.get('/api/popular-contests', async (req, res) => {
 })
 
 // SUBMISSIONS ENDPOINTS //
-app.get('/api/submissions', async (req, res) => {
+app.get('/api/submissions', verifyFBToken, verifyCreator, async (req, res) => {
     const result = await submissionsCol.find({}).toArray()
     return res.send({ success: true, result })
 })
 
-app.post('/api/submissions', async (req, res) => {
+app.post('/api/submissions', verifyFBToken, async (req, res) => {
     const { contestId, email, solution } = req.body
     // console.log('lkl', req.body);
 
@@ -407,7 +454,7 @@ app.post('/api/submissions', async (req, res) => {
     return res.send({ success: 'true', msg: 'submission_created', result })
 })
 
-app.delete('/api/submissions/:id', async (req, res) => {
+app.delete('/api/submissions/:id', verifyFBToken, verifyCreator, async (req, res) => {
     const { id } = req.params
 
     if (!ObjectId.isValid(id)) {
