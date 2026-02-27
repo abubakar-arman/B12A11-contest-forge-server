@@ -21,6 +21,8 @@ const usersCol = db.collection('users')
 const contestsCol = db.collection('contests')
 const submissionsCol = db.collection('submissions')
 const homeCol = db.collection('home')
+const winnersCol = db.collection('winners')
+const reviewsCol = db.collection('reviews')
 
 // MIDDLEWARES //
 const verifyAdmin = async (req, res, next) => {
@@ -439,6 +441,19 @@ app.get('/api/home/banner', async (req, res) => {
 
     return res.send({ success: true, imgs: result[0].bannerImages })
 })
+
+app.get('/api/winners', async (req, res) => {
+    const result = await winnersCol.find({}).toArray()
+
+    return res.send({ success: true, result })
+})
+
+app.get('/api/reviews', async (req, res) => {
+    const result = await reviewsCol.find({}).toArray()
+
+    return res.send({ success: true, result })
+})
+
 
 // SUBMISSIONS ENDPOINTS //
 app.get('/api/submissions', verifyFBToken, verifyCreator, async (req, res) => {
