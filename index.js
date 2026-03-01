@@ -199,7 +199,7 @@ app.post('/api/contests', verifyFBToken, verifyCreator, async (req, res) => {
     //   prize_money,
     //   deadline
     //  } = req.body
-    console.log('rej', req.decoded_email);
+    // console.log('rej', req.decoded_email);
 
     const result = await contestsCol.insertOne({
         ...req.body,
@@ -209,7 +209,7 @@ app.post('/api/contests', verifyFBToken, verifyCreator, async (req, res) => {
         status: 'pending', // pending/approved/rejected,
         created_by: req.decoded_email,
     })
-    console.log('contest created:', result);
+    // console.log('contest created:', result);
     return res.send({ success: 'true', msg: 'contest_created', result })
 })
 
@@ -430,7 +430,7 @@ app.put('/api/contest/undo-winner/:id', verifyFBToken, verifyCreator, async (req
 })
 
 app.get('/api/popular-contests', async (req, res) => {
-    const result = await contestsCol.find().sort({ participants_count: 'desc' }).limit(5).toArray()
+    const result = await contestsCol.find().sort({ participants_count: 'desc' }).limit(4).toArray()
     // console.log(result);
     return res.send({ success: true, result })
 })
