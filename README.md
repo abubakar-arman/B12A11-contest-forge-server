@@ -6,11 +6,14 @@
 [![Auth: Firebase](https://img.shields.io/badge/Auth-Firebase%20Authentication-FFCA28?logo=firebase&logoColor=black)](client/src/firebase/firebase.init.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+🚀 **[Live Demo](https://contest-forge.web.app/)**
+
 Contest Forge is a full-stack contest platform for building, managing, and participating in online contests with role-based workflows for users, creators, and admins.
 
 Keywords: contest platform, coding contest, challenge management, React dashboard, Express API, Firebase auth, MongoDB, role-based access control.
 
 ## Table of Contents
+- [Live Demo](#live-demo)
 - [Why Contest Forge](#why-contest-forge)
 - [Features](#features)
 - [Screenshots](#screenshots)
@@ -25,6 +28,9 @@ Keywords: contest platform, coding contest, challenge management, React dashboar
 - [Deployment](#deployment)
 - [Security Notes](#security-notes)
 - [License](#license)
+
+## Live Demo
+🚀 Check out the live application: **[https://contest-forge.web.app/](https://contest-forge.web.app/)**
 
 ## Why Contest Forge
 Contest Forge helps teams or communities run structured contests end-to-end:
